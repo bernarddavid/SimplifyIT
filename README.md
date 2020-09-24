@@ -6,9 +6,5 @@ The algorthims developed in this project were trained on three different data se
 1. One Stop English Corpus 
 1. Wikipedia and Simplified Wikipedia Corpus
 1. WeeBit corpus
-A classification machine learning algorithm is first built in order to assess the complexity of the texts. Next, a text generation model using SimpleGPT2 is fine-tuned using this text. Finally, a machine learning algorithm to evaluate the accuracy of simplified text (as compared to original text) will be built as a benchmark to evaluate the quality of the results from text generation.
 
-
-```python
-
-```
+A classification algorithm is first built in order to assess the complexity of the texts. Next, a text generation model using SimpleGPT2 is fine-tuned using this text. Finally, a machine learning algorithm to evaluate the accuracy of simplified text (as compared to original text) will be built as a benchmark to evaluate the quality of the results from text generation.
