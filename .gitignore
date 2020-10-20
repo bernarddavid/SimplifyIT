@@ -1,0 +1,9 @@
+ignore
+
+*.pem
+
+*.tar
+
+testrun
+
+wiki_sentence_124M_3000
