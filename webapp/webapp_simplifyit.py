@@ -223,82 +223,85 @@ st.markdown('''**SimplifyIT**: This app reduces the linguistic complexity of inf
 # Store text entered by user
 InputText = st.text_area('Text to simplify:')
 
-# Get text difficulty
-level = text_difficulty(InputText)
+# When no input text is specified there will be a value error. To avoid this, use a try/except.
+try: 
+    # Get text difficulty
+    level = text_difficulty(InputText)
 
-return_string = 'This text is written for **' + level + '** readers.'
+    return_string = 'This text is written for **' + level + '** readers.'
 
-st.markdown(return_string)
+    st.markdown(return_string)
 
-# GPT2 Model specification that are fed into "generate text" function
-gpt2size = '124M' # Either '124M' or '355M'
-n_steps = 2000 # Number of steps used to train model
-gpt2dir = '../gpt2models' # Location where pre-trained gpt2 models stored
-loaddir = '../trained_models/checkpoint' # Location where fine-tuned gpt2 models stored
-ft_dat = 'wiki_sentence' # Data set on which GPT2 trained
+    # GPT2 Model specification that are fed into "generate text" function
+    gpt2size = '124M' # Either '124M' or '355M'
+    n_steps = 2000 # Number of steps used to train model
+    gpt2dir = '../gpt2models' # Location where pre-trained gpt2 models stored
+    loaddir = '../trained_models/checkpoint' # Location where fine-tuned gpt2 models stored
+    ft_dat = 'wiki_sentence' # Data set on which GPT2 trained
 
-st.markdown('Generating new text...')
+    st.markdown('Generating new text...')
 
-# Generate replacement text from fine-tuned gpt2 model
-all_new, best_new = generate_text(size = gpt2size, 
-                                  mod_dir = gpt2dir, 
-                                  ft_dir = loaddir, 
-                                  ft_dat = ft_dat, 
-                                  n_steps = n_steps, 
-                                  input_text =  InputText, 
-                                  n_new_sent = 10)
+    # Generate replacement text from fine-tuned gpt2 model
+    all_new, best_new = generate_text(size = gpt2size, 
+                                      mod_dir = gpt2dir, 
+                                      ft_dir = loaddir, 
+                                      ft_dat = ft_dat, 
+                                      n_steps = n_steps, 
+                                      input_text =  InputText, 
+                                      n_new_sent = 10)
 
-# Set to display all text in pandas dataframe
-pd.set_option('max_colwidth', None)
+    # Set to display all text in pandas dataframe
+    pd.set_option('max_colwidth', None)
 
-# Merge simplified sentences into paragraph
-simplified_text = ' '.join(best_new['Generated'])
+    # Merge simplified sentences into paragraph
+    simplified_text = ' '.join(best_new['Generated'])
 
-simp_lev = text_difficulty(simplified_text)
+    simp_lev = text_difficulty(simplified_text)
 
-# Display new text
-st.markdown('Here is your simplified text:')
-st.markdown('_'+simplified_text+'_')
-st.markdown('The new text is written for **' + simp_lev + '** readers.')
+    # Display new text
+    st.markdown('Here is your simplified text:')
+    st.markdown('_'+simplified_text+'_')
+    st.markdown('The new text is written for **' + simp_lev + '** readers.')
 
-# Ask for user satisfaction about new text
-satis = st.radio(
-    'What do you think about this simplification?',
-    ('It\'s great, I love it!', 
-     'I\'d  like to make some modifications.')
-)
+    # Ask for user satisfaction about new text
+    satis = st.radio(
+        'What do you think about this simplification?',
+        ('It\'s great, I love it!', 
+         'I\'d  like to make some modifications.')
+    )
 
-# Replies to satisfaction options
-if satis == 'It\'s great, I love it!':
-    st.markdown('Fantastic, happy learning!')
-if satis == 'I\'d  like to make some modifications.':
-    st.markdown('Okay, let\'s find some alternatives.') 
-    st.markdown('Which sentences would you like to modify?')
-    
-    # If dissatisfied, user selects which sentence(s) to be changed.
-    sent_review = st.multiselect('Select all of the sentences you want to change.', best_new['Generated'])
-    
-    # For each sentence with which user is dissatisfied, allow user to choose replacement.
-    sent_select = pd.DataFrame()
-    for i in sent_review:
-        # Get sentence number of replaced sentence
-        sent_no = list(all_new[all_new['Generated'] == i]['SentNo'])[0]
-        
-        st.markdown('You are dissatisfied with this simplification: \"*' + str(i) + '*\"')
-        replace2 = st.selectbox('Choose one of the sentences below as a replacement:', 
-                                 all_new[all_new['SentNo'] == sent_no]['Generated'].reset_index(drop = True),
-                                 key = sent_no)
-        
-        sent_select = sent_select.append(pd.DataFrame({'SentNo' : [sent_no],
-                                                       'Generated' : [replace2]}))
-        
-    sent_select_ret = best_new[~best_new['SentNo'].isin(sent_select['SentNo'])][['SentNo', 'Generated']]
-    sent_select_ret = sent_select_ret.append(sent_select).sort_values(by = 'SentNo').reset_index(drop = True)
-    selected_text = ' '.join(sent_select_ret['Generated'])
-    
-    st.markdown('Here is the text with your requested revisions:')
-    st.markdown('_' + selected_text + '_')
-    
+    # Replies to satisfaction options
+    if satis == 'It\'s great, I love it!':
+        st.markdown('Fantastic, happy learning!')
+    if satis == 'I\'d  like to make some modifications.':
+        st.markdown('Okay, let\'s find some alternatives.') 
+        st.markdown('Which sentences would you like to modify?')
+
+        # If dissatisfied, user selects which sentence(s) to be changed.
+        sent_review = st.multiselect('Select all of the sentences you want to change.', best_new['Generated'])
+
+        # For each sentence with which user is dissatisfied, allow user to choose replacement.
+        sent_select = pd.DataFrame()
+        for i in sent_review:
+            # Get sentence number of replaced sentence
+            sent_no = list(all_new[all_new['Generated'] == i]['SentNo'])[0]
+
+            st.markdown('You are dissatisfied with this simplification: \"*' + str(i) + '*\"')
+            replace2 = st.selectbox('Choose one of the sentences below as a replacement:', 
+                                     all_new[all_new['SentNo'] == sent_no]['Generated'].reset_index(drop = True),
+                                     key = sent_no)
+
+            sent_select = sent_select.append(pd.DataFrame({'SentNo' : [sent_no],
+                                                           'Generated' : [replace2]}))
+
+        sent_select_ret = best_new[~best_new['SentNo'].isin(sent_select['SentNo'])][['SentNo', 'Generated']]
+        sent_select_ret = sent_select_ret.append(sent_select).sort_values(by = 'SentNo').reset_index(drop = True)
+        selected_text = ' '.join(sent_select_ret['Generated'])
+
+        st.markdown('Here is the text with your requested revisions:')
+        st.markdown('_' + selected_text + '_')
+except:
+    pass
     
     
     
